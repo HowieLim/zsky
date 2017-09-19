@@ -88,3 +88,5 @@ A：除了删除投诉的影片数据外，你可以使用前端Nginx、后端gu
 A：执行 mysql -uroot -p 将提示输入密码，输入密码后进入mysql管理界面，执行 drop database zsky;  （注意必须带分号)这样就删除了数据库，然后执行yum -y remove nginx mariadb mariadb-devel mariadb-server redis&&rm -rf /root/zsky 就成功卸载此程序了
 
 *如果还有疑问 加入QQ群：253524174 获取解决办法*
+
+需要定制任何功能请联系作者联系作者QQ 153329152 付费为你提供服务，这个是为了方便自己使用fork的

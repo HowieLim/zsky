@@ -1,3 +1,36 @@
+
+
+程序默认数据库密码123456
+
+修改simdht_worker.py里的max_node_qsize的大小调节爬取速度（队列大小）
+
+执行 python manage.py init_db     创建表/平滑升级表结构
+
+执行 python manage.py create_user 创建管理员
+
+执行 python manage.py changepassword 修改管理员密码
+
+执行 systemctl start gunicorn  启动网站
+
+执行 systemctl start mariadb  启动数据库
+
+执行 systemctl status mariadb  查看数据库运行状态
+
+执行 systemctl restart mariadb  重新启动数据库
+
+执行 systemctl status gunicorn  查看gunicorn运行状态
+
+执行 systemctl restart gunicorn   重新启动网站
+
+执行 systemctl restart indexer  手动重新索引
+
+执行 systemctl start searchd  开启搜索进程
+
+执行 systemctl status searchd  查看搜索进程运行状态
+
+执行 systemctl restart searchd   重新启动搜索进程
+
+
 使用说明
 ---
 ```Bash
@@ -14,7 +47,13 @@ cd zsky&&sh zsky.sh
 
 >后台地址 http://IP/admin 
 
+**Q：如何实现远程主机反向代理本程序？
 
+A：
+
+修改本机的/etc/systemd/system/gunicorn.service其中的127.0.0.1:8000修改为0.0.0.0:8000然后执行systemctl daemon-reload
+
+本程序所在主机不开启nginx，远程主机开启nginx，配置反向代理，绑定域名，配置文件参考程序内的nginx.conf ，即可使用域名正常访问。
 
 **Q：如何给首页的推荐影片添加图片、评分？**
 

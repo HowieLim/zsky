@@ -42,7 +42,7 @@ app.config['SECRET_KEY'] = 'super-secret'
 #debug_toolbar=DebugToolbarExtension()
 #debug_toolbar.init_app(app)
 #app.config['DEBUG_TB_INTERCEPT_REDIRECTS']=False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1:3306/zsky'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@127.0.0.1:3306/zsky'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_POOL_SIZE']=5000
 db = SQLAlchemy(app)
@@ -71,9 +71,11 @@ DB_PORT_MYSQL=3306
 DB_NAME_SPHINX='film'
 DB_PORT_SPHINX=9306
 DB_USER='root'
-DB_PASS=''
+DB_PASS='123456'
 DB_CHARSET='utf8mb4'
 
+sitename="纸上烤鱼"
+domain="http://127.0.0.1/"
 
 class LoginForm(FlaskForm):
     name=StringField('用户名',validators=[DataRequired(),Length(1,32)])
@@ -210,14 +212,14 @@ def index():
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
-    return render_template('index.html',form=form,keywords=keywords,total=total,today=today)
+    return render_template('index.html',form=form,keywords=keywords,total=total,today=today,sitename=sitename)
 
 def sensitivewords():
     sensitivewordslist = []
     sensitivefile = os.path.join(os.path.dirname(__file__), 'sensitivewords.txt')
     with open(sensitivefile, 'rb') as f:
         for line in f:
-            word = line.strip('\n')
+            word = re.compile(line.rstrip('\r\n\t').decode('utf-8'))
             sensitivewordslist.append(word)
     return  sensitivewordslist
 
@@ -231,8 +233,9 @@ def search():
     query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     if not form.search.data:
         return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
@@ -242,8 +245,9 @@ def search():
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -269,15 +273,16 @@ def search_results(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-length-<int:page>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_bylength(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -303,15 +308,16 @@ def search_results_bylength(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_bylength.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_bylength.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-time-<int:page>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_bycreate_time(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -337,15 +343,16 @@ def search_results_bycreate_time(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_bycreate_time.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_bycreate_time.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-requests-<int:page>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_byrequests(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -371,7 +378,7 @@ def search_results_byrequests(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_byrequests.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_byrequests.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 @app.route('/hash/<info_hash>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
@@ -389,7 +396,7 @@ def detail(info_hash):
     fenci_list=jieba.analyse.extract_tags(result['name'], 8)
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(20)
     form=SearchForm()
-    return render_template('detail.html',form=form,tags=tags,hash=result,fenci_list=fenci_list)
+    return render_template('detail.html',form=form,tags=tags,hash=result,fenci_list=fenci_list,sitename=sitename)
 
 
 @app.route('/sitemap.xml')
@@ -405,7 +412,7 @@ def sitemap():
     for row in rows:
         info_hash = row['info_hash']
         mtime = datetime.datetime.fromtimestamp(int(row['create_time'])).strftime('%Y-%m-%d')
-        url = request.url_root+'hash/{}.html'.format(info_hash)
+        url = domain+'hash/{}.html'.format(info_hash)
         url_xml = '<url><loc>{}</loc><lastmod>{}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>'.format(url, mtime)
         sitemaplist.append(url_xml)
     xml_content = '<?xml version="1.0" encoding="UTF-8"?><urlset>{}</urlset>'.format("".join(x for x in sitemaplist))

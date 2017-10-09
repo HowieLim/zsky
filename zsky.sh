@@ -67,7 +67,7 @@ cd /root/zsky
 mkdir /root/zsky/uploads
 \cp -rpf systemctl/gunicorn.service  systemctl/indexer.service  systemctl/searchd.service /etc/systemd/system
 systemctl daemon-reload	
-\cp -rpf /root/zsky/my.cnf  /etc/my.cnf 
+#\cp -rpf /root/zsky/my.cnf  /etc/my.cnf 这个不能用啊
 systemctl start  mariadb.service 
 systemctl enable mariadb.service
 systemctl start redis.service
@@ -100,7 +100,7 @@ git clone https://github.com/HowieLim/cppjieba.git
 ./configure --prefix=/usr/local/sphinx-jieba
 \cp -r cppjieba/include/cppjieba src/ 
 \cp -r cppjieba/deps/limonp src/ 
-make install
+make install  #文件名字区分大小写的！！！要处理一下
 \cp -r cppjieba/dict/* /usr/local/sphinx-jieba/etc/ 
 cd /usr/local/sphinx-jieba/
 \cp etc/jieba.dict.utf8 etc/xdictjieba.dict.utf8
@@ -134,3 +134,6 @@ pgrep -l nginx
 pgrep -l searchd
 pgrep -l gunicorn
 echo -e '修改管理员密码: python manage.py changepassword\n创建/新增管理员账号: python manage.py create_user'
+
+
+https://github.com/yanyiwu/cppjieba/tree/e5d9eb8816abdd7263c1eb3dd9c2db0edff31799
